@@ -1,0 +1,1 @@
+# kreu-crud-for-sqlc
