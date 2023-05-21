@@ -19,7 +19,7 @@ func main() {
 			if len(args) == 0 {
 				return errors.New("need 'root path' arg")
 			}
-			return execMain(args[0])
+			return execMain(args[0], args[1:])
 		},
 	}
 
@@ -28,8 +28,8 @@ func main() {
 	}
 }
 
-func execMain(rootPath string) error {
-	result, err := internal.CollectSQLParseResult(rootPath)
+func execMain(rootPath string, targetSQLName []string) error {
+	result, err := internal.CollectSQLParseResult(rootPath, targetSQLName)
 	if err != nil {
 		return err
 	}

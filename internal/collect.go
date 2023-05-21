@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func CollectSQLParseResult(root string) ([]*SQLParseResult, error) {
+func CollectSQLParseResult(root string, targetSQLNames []string) ([]*SQLParseResult, error) {
 	var sqlParseResults []*SQLParseResult
 	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
@@ -55,11 +55,13 @@ func CollectSQLParseResult(root string) ([]*SQLParseResult, error) {
 			sql.WriteString(line + " ")
 
 			if isEndSQL(line) {
-				res, err := NewSQLParser().Parse(sqlName, sqlFileName, sql.String())
-				if err != nil {
-					panic(err)
+				if contains(sqlName, targetSQLNames) {
+					res, err := NewSQLParser().Parse(sqlName, sqlFileName, sql.String())
+					if err != nil {
+						panic(err)
+					}
+					sqlParseResults = append(sqlParseResults, res)
 				}
-				sqlParseResults = append(sqlParseResults, res)
 
 				sqlName = ""
 				sql.Reset()
@@ -71,6 +73,18 @@ func CollectSQLParseResult(root string) ([]*SQLParseResult, error) {
 		return nil, err
 	}
 	return sqlParseResults, nil
+}
+
+func contains(str string, strs []string) bool {
+	if len(strs) == 0 {
+		return true
+	}
+	for _, s := range strs {
+		if str == s {
+			return true
+		}
+	}
+	return false
 }
 
 func isBlankLine(line string) bool {
@@ -93,7 +107,7 @@ func getSQLName(line string) string {
 	if len(tokens) != 3 {
 		return ""
 	}
-	return tokens[1]
+	return strings.Trim(tokens[1], " ")
 }
 
 func CollectTableNames(sqlParseResults []*SQLParseResult) []string {
