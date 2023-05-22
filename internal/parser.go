@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 
@@ -219,6 +220,40 @@ func parseNodeRangeSubSelect(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	return result
 }
 
+func parseNodeAExpr(node *query.Node, crud CRUD) []*TableNameWithCRUD {
+	var result []*TableNameWithCRUD
+
+	n := node.GetNode()
+	if n == nil {
+		return result
+	}
+
+	na, ok := n.(*query.Node_AExpr)
+	if !ok {
+		return result
+	}
+
+	if na == nil {
+		return result
+	}
+
+	if na.AExpr == nil {
+		return result
+	}
+
+	lx := na.AExpr.GetLexpr()
+	if lx != nil {
+		result = append(result, parseNode(lx, crud)...)
+	}
+
+	rx := na.AExpr.GetRexpr()
+	if rx != nil {
+		result = append(result, parseNode(rx, crud)...)
+	}
+
+	return result
+}
+
 func parseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	var result []*TableNameWithCRUD
 
@@ -235,6 +270,11 @@ func parseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	res3 := parseNodeRangeSubSelect(node, crud)
 	if res3 != nil {
 		result = append(result, res3...)
+	}
+
+	res4 := parseNodeAExpr(node, crud)
+	if res4 != nil {
+		result = append(result, res4...)
 	}
 
 	return result
@@ -264,6 +304,16 @@ func parseSelectStmt(s *query.SelectStmt) []*TableNameWithCRUD {
 	rRes := parseSelectStmt(s.Rarg)
 	if rRes != nil {
 		result = append(result, rRes...)
+	}
+
+	wh := s.WhereClause
+	if wh != nil {
+		wss := wh.GetSelectStmt()
+		fmt.Println(wss)
+		whRes := parseSelectStmt(wh.GetSelectStmt())
+		if whRes != nil {
+			result = append(result, whRes...)
+		}
 	}
 
 	return result
