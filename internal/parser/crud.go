@@ -3,7 +3,8 @@ package parser
 type CRUD int8
 
 const (
-	Create CRUD = iota + 1
+	Undecided CRUD = iota
+	Create
 	Read
 	Update
 	Delete

@@ -8,10 +8,12 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/sky0621/kreu-crud-for-sqlc/internal/parser"
 )
 
-func CollectSQLParseResult(root string, targetSQLNames []string) ([]*SQLParseResult, error) {
-	var sqlParseResults []*SQLParseResult
+func CollectSQLParseResult(root string, targetSQLNames []string) ([]*parser.SQLParseResult, error) {
+	var sqlParseResults []*parser.SQLParseResult
 	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
@@ -110,7 +112,7 @@ func getSQLName(line string) string {
 	return strings.Trim(tokens[1], " ")
 }
 
-func CollectTableNames(sqlParseResults []*SQLParseResult) []string {
+func CollectTableNames(sqlParseResults []*parser.SQLParseResult) []string {
 	m := map[string]struct{}{}
 	for _, x := range sqlParseResults {
 		for _, y := range x.TableNameWithCRUDSlice {
