@@ -19,13 +19,10 @@ func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 		results = append(results, createTableNameWithCRUD(rv.Relname, crud))
 	}
 
-	n := node.GetNode()
+	results = append(results, parseJoinExpr(node.GetJoinExpr(), crud)...)
+	results = append(results, parseFromExpr(node.GetFromExpr(), crud)...)
 
-	nv, ok := n.(*query.Node_RangeVar)
-	if ok && nv != nil && nv.RangeVar != nil {
-		results = append(results, createTableNameWithCRUD(nv.RangeVar.Relname, crud))
-		return results
-	}
+	n := node.GetNode()
 
 	nj, ok := n.(*query.Node_JoinExpr)
 	if ok && nj != nil && nj.JoinExpr != nil {
@@ -35,143 +32,27 @@ func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	return results
 }
 
-func parseSelectStmt(s *query.SelectStmt) []*TableNameWithCRUD {
+func parseJoinExpr(node *query.JoinExpr, crud CRUD) []*TableNameWithCRUD {
 	var results []*TableNameWithCRUD
 
-	if s == nil {
+	if node == nil {
 		return results
 	}
 
-	crud := Read
-
-	for _, from := range s.FromClause {
-		results = append(results, ParseNode(from, crud)...)
-	}
-
-	results = append(results, parseSelectStmt(s.Larg)...)
-	results = append(results, parseSelectStmt(s.Rarg)...)
-
-	wh := s.WhereClause
-	if wh != nil {
-		whRes := parseSelectStmt(wh.GetSelectStmt())
-		if whRes != nil {
-			results = append(results, whRes...)
-		}
-	}
+	results = append(results, ParseNode(node.GetLarg(), crud)...)
+	results = append(results, ParseNode(node.GetRarg(), crud)...)
 
 	return results
 }
 
-func parseInsertStmt(s *query.InsertStmt) []*TableNameWithCRUD {
+func parseFromExpr(node *query.FromExpr, crud CRUD) []*TableNameWithCRUD {
 	var results []*TableNameWithCRUD
 
-	if s == nil {
+	if node == nil {
 		return results
 	}
 
-	crud := Create
-
-	rel := s.GetRelation()
-	if rel != nil {
-		results = append(results, &TableNameWithCRUD{CRUD: crud, TableName: TableName(rel.GetRelname())})
-	}
-
-	return results
-}
-
-func parseUpdateStmt(s *query.UpdateStmt) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if s == nil {
-		return results
-	}
-
-	crud := Update
-
-	rel := s.GetRelation()
-	if rel != nil {
-		results = append(results, &TableNameWithCRUD{CRUD: crud, TableName: TableName(rel.GetRelname())})
-	}
-
-	return results
-}
-
-func parseDeleteStmt(s *query.DeleteStmt) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if s == nil {
-		return results
-	}
-
-	crud := Delete
-
-	rel := s.GetRelation()
-	if rel != nil {
-		results = append(results, &TableNameWithCRUD{CRUD: crud, TableName: TableName(rel.GetRelname())})
-	}
-
-	return results
-}
-
-func parseNodeRangeVar(node *query.Node, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	n := node.GetNode()
-	if n == nil {
-		return results
-	}
-
-	nv, ok := n.(*query.Node_RangeVar)
-	if !ok {
-		return results
-	}
-
-	if nv == nil {
-		return results
-	}
-
-	if nv.RangeVar == nil {
-		return results
-	}
-
-	results = append(results, &TableNameWithCRUD{CRUD: crud, TableName: TableName(nv.RangeVar.Relname)})
-	return results
-}
-
-func parseNodeJoinExpr(node *query.Node, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	n := node.GetNode()
-	if n == nil {
-		return results
-	}
-
-	nj, ok := n.(*query.Node_JoinExpr)
-	if !ok {
-		return results
-	}
-
-	if nj == nil {
-		return results
-	}
-
-	if nj.JoinExpr == nil {
-		return results
-	}
-
-	if nj.JoinExpr.Larg != nil {
-		res := ParseNode(nj.JoinExpr.Larg, crud)
-		if res != nil {
-			results = append(results, res...)
-		}
-	}
-
-	if nj.JoinExpr.Rarg != nil {
-		res := ParseNode(nj.JoinExpr.Rarg, crud)
-		if res != nil {
-			results = append(results, res...)
-		}
-	}
+	// FIXME:
 
 	return results
 }
