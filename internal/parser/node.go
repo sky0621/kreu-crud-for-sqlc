@@ -19,14 +19,129 @@ func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 		results = append(results, createTableNameWithCRUD(rv.Relname, crud))
 	}
 
-	results = append(results, parseJoinExpr(node.GetJoinExpr(), crud)...)
 	results = append(results, parseFromExpr(node.GetFromExpr(), crud)...)
+	results = append(results, parseJoinExpr(node.GetJoinExpr(), crud)...)
+	results = append(results, parseRangeSubSelect(node.GetRangeSubselect(), crud)...)
 
-	n := node.GetNode()
+	results = append(results, parseAccessPriv(node.GetAccessPriv(), crud)...)
+	//node.GetAConst()
+	results = append(results, parseAArrayExpr(node.GetAArrayExpr(), crud)...)
+	results = append(results, parseAggref(node.GetAggref(), crud)...)
+	results = append(results, parseAExpr(node.GetAExpr(), crud)...)
+	results = append(results, parseAIndices(node.GetAIndices(), crud)...)
+	node.GetAIndirection()
+	node.GetAlias()
+	node.GetAlterCollationStmt()
+	node.GetAlterDatabaseRefreshCollStmt()
+	node.GetAlterDatabaseSetStmt()
+	node.GetAlterDatabaseStmt()
+	node.GetAlterDefaultPrivilegesStmt()
+	node.GetAlterDomainStmt()
+	node.GetAlterEnumStmt()
+	node.GetAlterEventTrigStmt()
+	node.GetAlterExtensionContentsStmt()
+	node.GetAlterExtensionStmt()
+	node.GetAlterFdwStmt()
+	node.GetAlterForeignServerStmt()
+	node.GetAlterFunctionStmt()
 
-	nj, ok := n.(*query.Node_JoinExpr)
-	if ok && nj != nil && nj.JoinExpr != nil {
-		nj.JoinExpr.GetLarg()
+	return results
+}
+
+func parseAccessPriv(node *query.AccessPriv, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if node == nil {
+		return results
+	}
+
+	for _, e := range node.GetCols() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+
+	return results
+}
+
+func parseAArrayExpr(node *query.A_ArrayExpr, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if node == nil {
+		return results
+	}
+
+	for _, e := range node.GetElements() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+
+	return results
+}
+
+func parseAggref(node *query.Aggref, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if node == nil {
+		return results
+	}
+
+	for _, e := range node.GetAggargtypes() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+	for _, e := range node.GetAggdirectargs() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+	for _, e := range node.GetAggdistinct() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+	for _, e := range node.GetAggorder() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+	for _, e := range node.GetArgs() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+	results = append(results, ParseNode(node.GetAggfilter(), crud)...)
+	results = append(results, ParseNode(node.GetXpr(), crud)...)
+
+	return results
+}
+
+func parseAExpr(node *query.A_Expr, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if node == nil {
+		return results
+	}
+
+	results = append(results, ParseNode(node.GetLexpr(), crud)...)
+	results = append(results, ParseNode(node.GetRexpr(), crud)...)
+	for _, e := range node.GetName() {
+		results = append(results, ParseNode(e, crud)...)
+	}
+
+	return results
+}
+
+func parseAIndices(node *query.A_Indices, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if node == nil {
+		return results
+	}
+
+	results = append(results, ParseNode(node.GetLidx(), crud)...)
+	results = append(results, ParseNode(node.GetUidx(), crud)...)
+
+	return results
+}
+
+func parseFromExpr(node *query.FromExpr, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if node == nil {
+		return results
+	}
+
+	for _, from := range node.GetFromlist() {
+		results = append(results, ParseNode(from, crud)...)
 	}
 
 	return results
@@ -45,93 +160,14 @@ func parseJoinExpr(node *query.JoinExpr, crud CRUD) []*TableNameWithCRUD {
 	return results
 }
 
-func parseFromExpr(node *query.FromExpr, crud CRUD) []*TableNameWithCRUD {
+func parseRangeSubSelect(node *query.RangeSubselect, crud CRUD) []*TableNameWithCRUD {
 	var results []*TableNameWithCRUD
 
 	if node == nil {
 		return results
 	}
 
-	// FIXME:
-
-	return results
-}
-
-func parseNodeRangeSubSelect(node *query.Node, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	n := node.GetNode()
-	if n == nil {
-		return results
-	}
-
-	rs, ok := n.(*query.Node_RangeSubselect)
-	if !ok {
-		return results
-	}
-
-	if rs == nil {
-		return results
-	}
-
-	if rs.RangeSubselect == nil {
-		return results
-	}
-
-	sq := rs.RangeSubselect.GetSubquery()
-	if sq == nil {
-		return results
-	}
-
-	sRes := parseSelectStmt(sq.GetSelectStmt())
-	if sRes != nil {
-		results = append(results, sRes...)
-	}
-
-	return results
-}
-
-func parseNodeAExpr(node *query.Node, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	n := node.GetNode()
-	if n == nil {
-		return results
-	}
-
-	na, ok := n.(*query.Node_AExpr)
-	if !ok {
-		return results
-	}
-
-	if na == nil {
-		return results
-	}
-
-	if na.AExpr == nil {
-		return results
-	}
-
-	lx := na.AExpr.GetLexpr()
-	if lx != nil {
-		results = append(results, ParseNode(lx, crud)...)
-	}
-
-	rx := na.AExpr.GetRexpr()
-	if rx != nil {
-		results = append(results, ParseNode(rx, crud)...)
-	}
-
-	return results
-}
-
-func parseWhereClause(node *query.Node, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	n := node.GetNode()
-	if n == nil {
-		return results
-	}
+	results = append(results, ParseNode(node.GetSubquery(), crud)...)
 
 	return results
 }
