@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 
+	"github.com/sky0621/kreu-crud-for-sqlc/internal/parser"
+
 	ex "github.com/sky0621/excelize-wrapper"
 )
 
@@ -11,7 +13,7 @@ const fileName = "CRUD.xlsx"
 
 var tableColSet = []string{"D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U"}
 
-func Output(sqlParseResults []*SQLParseResult) error {
+func Output(sqlParseResults []*parser.SQLParseResult) error {
 	tableNames := CollectTableNames(sqlParseResults)
 
 	ew, closeFunc := ex.NewExcelizeWrapper(ex.SheetName(sheetName))

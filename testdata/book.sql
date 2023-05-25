@@ -13,3 +13,7 @@ FROM
                    ON ab.author_id = a.author_id
 WHERE b.publish = $1
 ORDER BY b.publish_date DESC;
+
+-- name: CreateBookHistoryByBook :one
+INSERT INTO book_histories (title, name, publish_date) SELECT title, name, publish_date FROM books WHERE id = $1
+RETURNING *;
