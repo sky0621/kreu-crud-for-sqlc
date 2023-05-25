@@ -61,8 +61,8 @@ func parseInsertStmt(s *query.InsertStmt) []*TableNameWithCRUD {
 		s.GetReturningList(),
 	}, crud, results)
 
-	results = append(results, parseWithClause(s.GetWithClause(), crud)...)
 	results = append(results, parseOnConflictClause(s.GetOnConflictClause(), crud)...)
+	results = append(results, parseWithClause(s.GetWithClause(), crud)...)
 
 	results = append(results, parseRangeVar(s.GetRelation(), crud)...)
 
@@ -78,10 +78,19 @@ func parseUpdateStmt(s *query.UpdateStmt) []*TableNameWithCRUD {
 
 	crud := Update
 
-	rel := s.GetRelation()
-	if rel != nil {
-		results = append(results, &TableNameWithCRUD{CRUD: crud, TableName: TableName(rel.GetRelname())})
-	}
+	results = parseNodes([]*query.Node{
+		s.GetWhereClause(),
+	}, crud, results)
+
+	results = parseNodesNodes([][]*query.Node{
+		s.GetFromClause(),
+		s.GetReturningList(),
+		s.GetTargetList(),
+	}, crud, results)
+
+	results = append(results, parseWithClause(s.GetWithClause(), crud)...)
+
+	results = append(results, parseRangeVar(s.GetRelation(), crud)...)
 
 	return results
 }
@@ -95,10 +104,18 @@ func parseDeleteStmt(s *query.DeleteStmt) []*TableNameWithCRUD {
 
 	crud := Delete
 
-	rel := s.GetRelation()
-	if rel != nil {
-		results = append(results, &TableNameWithCRUD{CRUD: crud, TableName: TableName(rel.GetRelname())})
-	}
+	results = parseNodes([]*query.Node{
+		s.GetWhereClause(),
+	}, crud, results)
+
+	results = parseNodesNodes([][]*query.Node{
+		s.GetReturningList(),
+		s.GetUsingClause(),
+	}, crud, results)
+
+	results = append(results, parseWithClause(s.GetWithClause(), crud)...)
+
+	results = append(results, parseRangeVar(s.GetRelation(), crud)...)
 
 	return results
 }
