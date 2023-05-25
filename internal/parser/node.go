@@ -14,10 +14,7 @@ func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	results = append(results, parseUpdateStmt(node.GetUpdateStmt())...)
 	results = append(results, parseDeleteStmt(node.GetDeleteStmt())...)
 
-	rv := node.GetRangeVar()
-	if rv != nil {
-		results = append(results, createTableNameWithCRUD(rv.Relname, crud))
-	}
+	results = append(results, parseRangeVar(node.GetRangeVar(), crud)...)
 
 	results = append(results, parseFromExpr(node.GetFromExpr(), crud)...)
 	results = append(results, parseJoinExpr(node.GetJoinExpr(), crud)...)
@@ -44,6 +41,18 @@ func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	node.GetAlterFdwStmt()
 	node.GetAlterForeignServerStmt()
 	node.GetAlterFunctionStmt()
+
+	return results
+}
+
+func parseRangeVar(v *query.RangeVar, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if v == nil {
+		return results
+	}
+
+	results = append(results, createTableNameWithCRUD(v.Relname, crud))
 
 	return results
 }
