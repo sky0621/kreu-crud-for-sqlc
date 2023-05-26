@@ -5,42 +5,126 @@ import query "github.com/pganalyze/pg_query_go/v4"
 func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	var results []*TableNameWithCRUD
 
-	if node == nil || node.GetNode() == nil {
+	if node == nil {
 		return results
 	}
 
+	/*
+	 * parse statement
+	 */
 	results = append(results, parseSelectStmt(node.GetSelectStmt())...)
 	results = append(results, parseInsertStmt(node.GetInsertStmt())...)
 	results = append(results, parseUpdateStmt(node.GetUpdateStmt())...)
 	results = append(results, parseDeleteStmt(node.GetDeleteStmt())...)
+	results = append(results, parseAlterCollationStmt(node.GetAlterCollationStmt(), crud)...)
 
+	/*
+		{
+			node.GetAlterCollationStmt()
+			node.GetAlterDatabaseRefreshCollStmt()
+			node.GetAlterDatabaseSetStmt()
+			node.GetAlterDatabaseStmt()
+			node.GetAlterDefaultPrivilegesStmt()
+			node.GetAlterDomainStmt()
+			node.GetAlterEnumStmt()
+			node.GetAlterEventTrigStmt()
+			node.GetAlterExtensionContentsStmt()
+			node.GetAlterExtensionStmt()
+			node.GetAlterFdwStmt()
+			node.GetAlterForeignServerStmt()
+			node.GetAlterFunctionStmt()
+			node.GetAlternativeSubPlan()
+			node.GetAlterObjectDependsStmt()
+			node.GetAlterObjectSchemaStmt()
+			node.GetAlterOperatorStmt()
+			node.GetAlterOpFamilyStmt()
+			node.GetAlterOwnerStmt()
+			node.GetAlterPolicyStmt()
+			node.GetAlterPublicationStmt()
+			node.GetAlterRoleSetStmt()
+			node.GetAlterRoleStmt()
+			node.GetAlterSeqStmt()
+			node.GetAlterStatsStmt()
+			node.GetAlterSubscriptionStmt()
+			node.GetAlterSystemStmt()
+			node.GetAlterTableCmd()
+			node.GetAlterTableMoveAllStmt()
+			node.GetAlterTableSpaceOptionsStmt()
+			node.GetAlterTableStmt()
+			node.GetAlterTsconfigurationStmt()
+			node.GetAlterTsdictionaryStmt()
+			node.GetAlterTypeStmt()
+			node.GetAlterUserMappingStmt()
+		}
+	*/
+
+	node.GetCallStmt()
+
+	/*
+	 * pickup table name
+	 */
 	results = append(results, parseRangeVar(node.GetRangeVar(), crud)...)
 
-	results = append(results, parseFromExpr(node.GetFromExpr(), crud)...)
-	results = append(results, parseJoinExpr(node.GetJoinExpr(), crud)...)
-	results = append(results, parseRangeSubSelect(node.GetRangeSubselect(), crud)...)
-
+	/*
+	 * parse others
+	 */
 	results = append(results, parseAccessPriv(node.GetAccessPriv(), crud)...)
 	//node.GetAConst()
 	results = append(results, parseAArrayExpr(node.GetAArrayExpr(), crud)...)
 	results = append(results, parseAggref(node.GetAggref(), crud)...)
 	results = append(results, parseAExpr(node.GetAExpr(), crud)...)
 	results = append(results, parseAIndices(node.GetAIndices(), crud)...)
-	node.GetAIndirection()
-	node.GetAlias()
-	node.GetAlterCollationStmt()
-	node.GetAlterDatabaseRefreshCollStmt()
-	node.GetAlterDatabaseSetStmt()
-	node.GetAlterDatabaseStmt()
-	node.GetAlterDefaultPrivilegesStmt()
-	node.GetAlterDomainStmt()
-	node.GetAlterEnumStmt()
-	node.GetAlterEventTrigStmt()
-	node.GetAlterExtensionContentsStmt()
-	node.GetAlterExtensionStmt()
-	node.GetAlterFdwStmt()
-	node.GetAlterForeignServerStmt()
-	node.GetAlterFunctionStmt()
+	results = append(results, parseAIndirection(node.GetAIndirection(), crud)...)
+	results = append(results, parseAlias(node.GetAlias(), crud)...)
+	results = append(results, parseArrayCoerceExpr(node.GetArrayCoerceExpr(), crud)...)
+	results = append(results, parseArrayExpr(node.GetArrayExpr(), crud)...)
+	//node.GetAStar()
+
+	//node.GetBitString()
+	//node.GetBoolean()
+	node.GetBooleanTest()
+	node.GetBoolExpr()
+
+	//node.GetCallContext()
+	results = append(results, parseCaseExpr(node.GetCaseExpr(), crud)...)
+	node.GetCaseTestExpr()
+	node.GetCaseWhen()
+	node.GetCheckPointStmt()
+	node.GetClosePortalStmt()
+	node.GetClusterStmt()
+	node.GetCoalesceExpr()
+	node.GetCoerceToDomain()
+	node.GetCoerceToDomainValue()
+	node.GetCoerceViaIo()
+	node.GetCollateClause()
+	node.GetCollateExpr()
+	node.GetColumnDef()
+	node.GetColumnRef()
+	node.GetCommentStmt()
+	node.GetCommonTableExpr()
+	node.GetCompositeTypeStmt()
+	node.GetConstraint()
+	node.GetConstraintsSetStmt()
+	node.GetConvertRowtypeExpr()
+	node.GetCopyStmt()
+	node.GetCreateAmStmt()
+	node.GetCreateCastStmt()
+	node.GetCreateConversionStmt()
+	node.GetCreatedbStmt()
+	node.GetCreateDomainStmt()
+	node.GetCreateEnumStmt()
+	node.GetCreateEventTrigStmt()
+	node.GetCreateExtensionStmt()
+	node.GetCreateFdwStmt()
+	node.GetCreateForeignServerStmt()
+	node.GetCreateForeignTableStmt()
+	// FIXME: GetC~~
+
+	results = append(results, parseFromExpr(node.GetFromExpr(), crud)...)
+
+	results = append(results, parseJoinExpr(node.GetJoinExpr(), crud)...)
+
+	results = append(results, parseRangeSubSelect(node.GetRangeSubselect(), crud)...)
 
 	return results
 }
@@ -53,91 +137,6 @@ func parseRangeVar(v *query.RangeVar, crud CRUD) []*TableNameWithCRUD {
 	}
 
 	results = append(results, createTableNameWithCRUD(v.Relname, crud))
-
-	return results
-}
-
-func parseAccessPriv(node *query.AccessPriv, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if node == nil {
-		return results
-	}
-
-	results = parseNodesNodes([][]*query.Node{
-		node.GetCols(),
-	}, crud, results)
-
-	return results
-}
-
-func parseAArrayExpr(node *query.A_ArrayExpr, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if node == nil {
-		return results
-	}
-
-	results = parseNodesNodes([][]*query.Node{
-		node.GetElements(),
-	}, crud, results)
-
-	return results
-}
-
-func parseAggref(node *query.Aggref, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if node == nil {
-		return results
-	}
-
-	results = parseNodes([]*query.Node{
-		node.GetAggfilter(),
-		node.GetXpr(),
-	}, crud, results)
-
-	results = parseNodesNodes([][]*query.Node{
-		node.GetAggargtypes(),
-		node.GetAggdirectargs(),
-		node.GetAggdistinct(),
-		node.GetAggorder(),
-		node.GetArgs(),
-	}, crud, results)
-
-	return results
-}
-
-func parseAExpr(node *query.A_Expr, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if node == nil {
-		return results
-	}
-
-	results = parseNodes([]*query.Node{
-		node.GetLexpr(),
-		node.GetRexpr(),
-	}, crud, results)
-
-	results = parseNodesNodes([][]*query.Node{
-		node.GetName(),
-	}, crud, results)
-
-	return results
-}
-
-func parseAIndices(node *query.A_Indices, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if node == nil {
-		return results
-	}
-
-	results = parseNodes([]*query.Node{
-		node.GetLidx(),
-		node.GetUidx(),
-	}, crud, results)
 
 	return results
 }
@@ -188,19 +187,6 @@ func parseJoinExpr(node *query.JoinExpr, crud CRUD) []*TableNameWithCRUD {
 	return results
 }
 
-func parseAlias(a *query.Alias, crud CRUD) []*TableNameWithCRUD {
-	var results []*TableNameWithCRUD
-
-	if a == nil {
-		return results
-	}
-
-	results = parseNodesNodes([][]*query.Node{
-		a.GetColnames(),
-	}, crud, results)
-
-	return results
-}
 func parseRangeSubSelect(node *query.RangeSubselect, crud CRUD) []*TableNameWithCRUD {
 	var results []*TableNameWithCRUD
 

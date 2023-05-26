@@ -119,3 +119,17 @@ func parseDeleteStmt(s *query.DeleteStmt) []*TableNameWithCRUD {
 
 	return results
 }
+
+func parseAlterCollationStmt(s *query.AlterCollationStmt, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if s == nil {
+		return results
+	}
+
+	results = parseNodesNodes([][]*query.Node{
+		s.GetCollname(),
+	}, crud, results)
+
+	return results
+}
