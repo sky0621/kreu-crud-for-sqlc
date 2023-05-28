@@ -2,8 +2,6 @@ package parser
 
 import (
 	"strings"
-
-	query "github.com/pganalyze/pg_query_go/v4"
 )
 
 // CreateInitialSQLParseResult is
@@ -51,20 +49,4 @@ func (n SQLFileName) ToString() string {
 
 func ToSQLFileName(n string) SQLFileName {
 	return SQLFileName(strings.Trim(n, " "))
-}
-
-func parseNodes(nodes []*query.Node, crud CRUD, results []*TableNameWithCRUD) []*TableNameWithCRUD {
-	for _, node := range nodes {
-		results = append(results, ParseNode(node, crud)...)
-	}
-	return results
-}
-
-func parseNodesNodes(nodesNodes [][]*query.Node, crud CRUD, results []*TableNameWithCRUD) []*TableNameWithCRUD {
-	for _, nodes := range nodesNodes {
-		for _, node := range nodes {
-			results = append(results, ParseNode(node, crud)...)
-		}
-	}
-	return results
 }

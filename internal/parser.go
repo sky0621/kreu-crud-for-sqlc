@@ -13,7 +13,7 @@ type SQLParser interface {
 }
 
 func NewSQLParser() SQLParser {
-	return &sqlParser2{}
+	return &sqlParser{}
 }
 
 type sqlParser struct {
@@ -29,15 +29,15 @@ func (p *sqlParser) Parse(sqlName, sqlFileName, sql string) (*parser.SQLParseRes
 		return nil, errors.New("result == nil")
 	}
 
-	processedResult := parser.CreateInitialSQLParseResult(sqlName, sqlFileName)
+	result := parser.CreateInitialSQLParseResult(sqlName, sqlFileName)
 
 	for _, stmt := range res.GetStmts() {
-		tableNameWithCRUDSlice := parser.ParseNode(stmt.GetStmt(), parser.Undecided)
-		if tableNameWithCRUDSlice == nil || len(tableNameWithCRUDSlice) == 0 {
+		tableNameWithCRUDs := parser.ExamineTables(stmt.GetStmt(), parser.Undecided)
+		if tableNameWithCRUDs == nil || len(tableNameWithCRUDs) == 0 {
 			continue
 		}
-		processedResult.TableNameWithCRUDSlice = append(processedResult.TableNameWithCRUDSlice, tableNameWithCRUDSlice...)
+		result.TableNameWithCRUDSlice = append(result.TableNameWithCRUDSlice, tableNameWithCRUDs...)
 	}
 
-	return processedResult, nil
+	return result, nil
 }
