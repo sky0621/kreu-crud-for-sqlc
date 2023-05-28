@@ -40,7 +40,7 @@ func (c CRUD) ToShortName() string {
 	return ""
 }
 
-func JudgeCRUD(node *query.Node) CRUD {
+func judgeCRUD(node *query.Node) CRUD {
 	if node == nil {
 		return Undecided
 	}

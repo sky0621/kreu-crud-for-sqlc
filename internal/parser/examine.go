@@ -17,7 +17,7 @@ func ExamineTables(value interface{}, crud CRUD) []*TableNameWithCRUD {
 
 	node, ok := value.(*query.Node)
 	if ok {
-		actualCRUD := JudgeCRUD(node)
+		actualCRUD := judgeCRUD(node)
 		if actualCRUD != Undecided {
 			useCRUD = actualCRUD
 		}
