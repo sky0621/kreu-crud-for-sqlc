@@ -1,5 +1,7 @@
 package parser
 
+import query "github.com/pganalyze/pg_query_go/v4"
+
 type CRUD int8
 
 const (
@@ -36,4 +38,24 @@ func (c CRUD) ToShortName() string {
 		return "D"
 	}
 	return ""
+}
+
+func JudgeCRUD(node *query.Node) CRUD {
+	if node == nil {
+		return Undecided
+	}
+
+	if node.GetSelectStmt() != nil {
+		return Read
+	}
+	if node.GetInsertStmt() != nil {
+		return Create
+	}
+	if node.GetUpdateStmt() != nil {
+		return Update
+	}
+	if node.GetDeleteStmt() != nil {
+		return Delete
+	}
+	return Undecided
 }

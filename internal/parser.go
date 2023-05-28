@@ -13,7 +13,7 @@ type SQLParser interface {
 }
 
 func NewSQLParser() SQLParser {
-	return &sqlParser{}
+	return &sqlParser2{}
 }
 
 type sqlParser struct {

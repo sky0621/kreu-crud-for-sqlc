@@ -1,7 +1,49 @@
 package parser
 
-import query "github.com/pganalyze/pg_query_go/v4"
+import (
+	query "github.com/pganalyze/pg_query_go/v4"
+)
 
+func ExamineNode(n interface{}, crud CRUD) []*TableNameWithCRUD {
+	var results []*TableNameWithCRUD
+
+	if n == nil {
+		return results
+	}
+
+	node := toNode(n)
+	if node == nil {
+		return results
+	}
+
+	useCRUD := crud
+
+	actualCRUD := JudgeCRUD(node)
+	if actualCRUD != Undecided {
+		useCRUD = actualCRUD
+	}
+
+	results = append(results, ExamineTables(n, useCRUD)...)
+
+	return results
+}
+
+func toNode(v any) *query.Node {
+	node, ok := v.(*query.Node)
+	if !ok {
+		return nil
+	}
+	return node
+}
+
+func getTableName(v *query.RangeVar) string {
+	if v == nil {
+		return ""
+	}
+	return v.GetRelname()
+}
+
+// 消す？
 func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	var results []*TableNameWithCRUD
 
@@ -119,6 +161,21 @@ func ParseNode(node *query.Node, crud CRUD) []*TableNameWithCRUD {
 	node.GetCreateForeignServerStmt()
 	node.GetCreateForeignTableStmt()
 	// FIXME: GetC~~
+
+	node.GetDeallocateStmt()
+	node.GetDeclareCursorStmt()
+	node.GetDefElem()
+	node.GetDefineStmt()
+	node.GetDiscardStmt()
+	node.GetDistinctExpr()
+	node.GetDoStmt()
+	node.GetDropdbStmt()
+	node.GetDropSubscriptionStmt()
+	node.GetDropOwnedStmt()
+	node.GetDropRoleStmt()
+	node.GetDropStmt()
+	node.GetDropTableSpaceStmt()
+	node.GetDropUserMappingStmt()
 
 	results = append(results, parseFromExpr(node.GetFromExpr(), crud)...)
 

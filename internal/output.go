@@ -14,6 +14,9 @@ const fileName = "CRUD.xlsx"
 var tableColSet = []string{"D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U"}
 
 func Output(sqlParseResults []*parser.SQLParseResult) error {
+	if sqlParseResults == nil {
+		return nil
+	}
 	tableNames := CollectTableNames(sqlParseResults)
 
 	ew, closeFunc := ex.NewExcelizeWrapper(ex.SheetName(sheetName))
