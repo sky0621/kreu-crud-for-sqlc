@@ -41,6 +41,10 @@ func CollectSQLParseResult(root string, targetSQLNames []string) ([]*parser.SQLP
 
 		sqlFileName := stat.Name()
 		log.Printf("sqlFileName:%s\n", sqlFileName)
+		if !strings.HasSuffix(sqlFileName, ".sql") {
+			log.Println("it is not target suffix, so skip")
+			return nil
+		}
 
 		sqlName := ""
 		sql := strings.Builder{}
