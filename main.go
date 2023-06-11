@@ -19,6 +19,7 @@ func main() {
 			if len(args) == 0 {
 				return errors.New("need 'root path' arg")
 			}
+			log.Printf("root path: %s\n", args[0])
 			return execMain(args[0], args[1:])
 		},
 	}
@@ -34,7 +35,7 @@ func execMain(rootPath string, targetSQLName []string) error {
 		return err
 	}
 
-	if err := internal.Output(result); err != nil {
+	if err := internal.Output(rootPath, result); err != nil {
 		return err
 	}
 	return nil

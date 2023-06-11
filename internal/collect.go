@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -15,7 +16,9 @@ import (
 func CollectSQLParseResult(root string, targetSQLNames []string) ([]*parser.SQLParseResult, error) {
 	var sqlParseResults []*parser.SQLParseResult
 	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		log.Printf("root: %s, path: %s, error: %v\n", root, path, err)
 		if d.IsDir() {
+			log.Println("is directory, so skip")
 			return nil
 		}
 
@@ -37,6 +40,7 @@ func CollectSQLParseResult(root string, targetSQLNames []string) ([]*parser.SQLP
 		}
 
 		sqlFileName := stat.Name()
+		log.Printf("sqlFileName:%s\n", sqlFileName)
 
 		sqlName := ""
 		sql := strings.Builder{}

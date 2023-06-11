@@ -2,6 +2,8 @@ package internal
 
 import (
 	"fmt"
+	"log"
+	"path/filepath"
 
 	"github.com/sky0621/kreu-crud-for-sqlc/internal/parser"
 
@@ -28,9 +30,12 @@ var tableColSet = []string{
 	"MA", "MB", "MC", "MD", "ME", "MF", "MG", "MH", "MI", "MJ", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS", "MT", "MU", "MV", "MW", "MX", "MY", "MZ",
 }
 
-func Output(sqlParseResults []*parser.SQLParseResult) error {
+func Output(rootPath string, sqlParseResults []*parser.SQLParseResult) error {
 	if sqlParseResults == nil {
 		return nil
+	}
+	for _, res := range sqlParseResults {
+		log.Printf("[SQLFileName:%s][SQLName:%s]\n", res.SQLFileName, res.SQLName)
 	}
 	tableNames := CollectTableNames(sqlParseResults)
 
@@ -97,7 +102,7 @@ func Output(sqlParseResults []*parser.SQLParseResult) error {
 		}
 	}
 
-	ew.SaveAs(fileName)
+	ew.SaveAs(filepath.Join(rootPath, fileName))
 
 	return nil
 }
